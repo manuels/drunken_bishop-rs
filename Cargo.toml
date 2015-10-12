@@ -1,0 +1,6 @@
+[package]
+name = "drunken_bishop"
+version = "0.1.1"
+authors = ["Manuel Schölling <manuel.schoelling@gmx.de>"]
+description = "An implementation of OpenSSL's randomart algorithm"
+license = "GPL-2.0"
