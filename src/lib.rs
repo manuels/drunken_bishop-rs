@@ -26,13 +26,28 @@ pub const OPENSSL: Mode<'static> = Mode {
 	alphabet: b" .o+=*BOX@%&#/^SE",
 };
 
+pub enum BoxMode {
+    Ascii,
+    Unicode,
+}
+
+impl BoxMode {
+    fn chars(&self) -> Vec<char> {
+        match *self {
+            BoxMode::Ascii => "-|++++".chars().collect(),
+            BoxMode::Unicode => "─│┌┐└┘".chars().collect(),
+        }
+    }
+}
+
 fn in_range<T: cmp::Ord>(minumum: T, value: T, maximum: T) -> T
 {
 	min(max(minumum, value), maximum)
 }
 
-pub fn drunken_bishop<'a>(fingerprint: &'a [u8], mode: Mode) -> String {
+pub fn drunken_bishop<'a>(fingerprint: &'a [u8], mode: Mode, b: BoxMode) -> String {
 	let mut field = vec![vec![0; mode.width]; mode.height];
+	let b = b.chars();
 
 	let mut pos = (mode.height/2, mode.width/2);
 	for byte in fingerprint {
@@ -52,15 +67,18 @@ pub fn drunken_bishop<'a>(fingerprint: &'a [u8], mode: Mode) -> String {
 
 	let mut res = String::new();
 	for row in field {
-		res.push('|');
+		res.push(b[1]);
 		for val in row {
 			let c = char::from_u32(mode.alphabet[min(val, mode.alphabet.len()-1)] as u32);
 			res.push(c.unwrap());
 		}
-		res.push_str("|\n");
+
+		res.push(b[1]);
+		res.push('\n');
 	}
 
-	format!("+{1}+\n{0}+{1}+\n", res, (0..mode.width).map(|_| "-").collect::<String>())
+	format!("{2}{1}{3}\n{0}{4}{1}{5}\n", res, (0..mode.width).map(|_| b[0]).collect::<String>(),
+	    b[2], b[3], b[4], b[5])
 }
 
 #[test]
@@ -80,9 +98,9 @@ fn test1() {
 					+-----------------+\n";
 
 	println!("'{}'", expected);
-	println!("'{}'", drunken_bishop(&input[..], OPENSSL));
+	println!("'{}'", drunken_bishop(&input[..], OPENSSL, BoxMode::Ascii));
 
-	assert_eq!(drunken_bishop(&input[..], OPENSSL), expected);
+	assert_eq!(drunken_bishop(&input[..], OPENSSL, BoxMode::Ascii), expected);
 }
 
 #[test]
@@ -102,9 +120,9 @@ fn test2() {
 	                +-----------------+\n";
 
 	println!("'{}'", expected);
-	println!("'{}'", drunken_bishop(&input[..], OPENSSL));
+	println!("'{}'", drunken_bishop(&input[..], OPENSSL, BoxMode::Ascii));
 
-	assert_eq!(drunken_bishop(&input[..], OPENSSL), expected);
+	assert_eq!(drunken_bishop(&input[..], OPENSSL, BoxMode::Ascii), expected);
 }
 
 #[test]
@@ -124,30 +142,30 @@ fn test3() {
 	                +-----------------+\n";
 
 	println!("'{}'", expected);
-	println!("'{}'", drunken_bishop(&input[..], OPENSSL));
+	println!("'{}'", drunken_bishop(&input[..], OPENSSL, BoxMode::Ascii));
 
-	assert_eq!(drunken_bishop(&input[..], OPENSSL), expected);
+	assert_eq!(drunken_bishop(&input[..], OPENSSL, BoxMode::Ascii), expected);
 }
 
 #[test]
 fn test4() {
 	let input = [0x17, 0xcd, 0xe2, 0xab, 0x1a, 0x4b, 0x7d, 0x97, 0x89, 0xd9, 0xc3, 0x7b, 0xb9, 0x12, 0x08, 0x48];
 
-	let expected = "+-----------------+\n\
-	                |                 |\n\
-	                |      E    o     |\n\
-	                |     . .  o o    |\n\
-	                |      . .. o     |\n\
-	                |        S.o.     |\n\
-	                |       . ..*.o   |\n\
-	                |      o . = B. . |\n\
-	                |     . o o ..oo  |\n\
-	                |      o..   .o.. |\n\
-	                +-----------------+\n";
+	let expected = "┌─────────────────┐\n\
+	                │                 │\n\
+	                │      E    o     │\n\
+	                │     . .  o o    │\n\
+	                │      . .. o     │\n\
+	                │        S.o.     │\n\
+	                │       . ..*.o   │\n\
+	                │      o . = B. . │\n\
+	                │     . o o ..oo  │\n\
+	                │      o..   .o.. │\n\
+	                └─────────────────┘\n";
 
 	println!("'{}'", expected);
-	println!("'{}'", drunken_bishop(&input[..], OPENSSL));
+	println!("'{}'", drunken_bishop(&input[..], OPENSSL, BoxMode::Unicode));
 
-	assert_eq!(drunken_bishop(&input[..], OPENSSL), expected);
+	assert_eq!(drunken_bishop(&input[..], OPENSSL, BoxMode::Unicode), expected);
 }
 
